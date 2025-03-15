@@ -6,8 +6,8 @@ st.set_page_config(page_title="Controle de Despesas")
 
 st.title("Lançamentos de Despesas")
 
-# Definir o caminho do arquivo
-arquivo_excel = r"C:\Projetos - Python\gestao_despesas.xlsx"
+# Definir o caminho do arquivo dentro do app
+arquivo_excel = "gestao_despesas.xlsx"
 
 with st.container():
     st.header("Adicionar Nova Despesa")
@@ -27,14 +27,14 @@ with st.container():
             columns=["Data", "Data Vencimento", "Categoria", "Origem", "Valor", "Cartão", "Parcelas"]
         )
         
-        # Verificar se o arquivo já existe
+        # Verificar se o arquivo já existe dentro do app
         if os.path.exists(arquivo_excel):
             df_existente = pd.read_excel(arquivo_excel)
             df_final = pd.concat([df_existente, nova_despesa], ignore_index=True)
         else:
             df_final = nova_despesa
         
-        # Salvar no Excel
+        # Salvar dentro do app
         df_final.to_excel(arquivo_excel, index=False)
         st.success("Despesa salva com sucesso!")
         st.rerun()  # Atualiza a página para exibir a nova despesa imediatamente
