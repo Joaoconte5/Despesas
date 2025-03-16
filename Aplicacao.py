@@ -43,7 +43,7 @@ def pagina_lancamento():
     
     data = st.date_input("Data da Despesa", format="DD/MM/YYYY", value=date.today())
     data_vencimento = st.date_input("Data de Vencimento", format="DD/MM/YYYY", value=date.today())
-    categoria = st.selectbox("Categoria", ["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "viagem", "Casa Utensilio", "Casa concerto", "Diversos", "Carro",
+    categoria = st.selectbox("Categoria", ["Mercado","Condomínio", "Aluguel", "Energia Elétrica", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "viagem", "Casa Utensilio", "Casa concerto", "Diversos", "Carro",
 "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza","Vestuário", "Cursos e treinamentos"])
     origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"])
     valor = st.number_input("Valor", min_value=0.0, format="%.2f")
