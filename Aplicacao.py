@@ -48,7 +48,7 @@ def pagina_lancamento():
     origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"])
     valor = st.number_input("Valor", min_value=0.0, format="%.2f")
     cartao = st.selectbox("Cartão", ["Crédito", "Débito"])
-    parcelas = st.number_input("Parcelas", min_value=1, step=1, value=1)
+    parcelas = st.text_input("Parcelas")
     observacao = st.text_area("Observação")
     
     if st.button("Salvar Despesa"):
