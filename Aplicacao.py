@@ -167,21 +167,22 @@ def pagina_graficos():
     if origem_filtro != "Todos":
         despesas = despesas[despesas["Origem"] == origem_filtro]
 
-    # Gráfico de despesas por categoria
+    # Gráfico de despesas por categoria (com a categoria no eixo Y)
     despesas_categoria = despesas.groupby("Categoria")["Valor"].sum().reset_index()
 
     st.subheader("Despesas por Categoria")
     fig1, ax1 = plt.subplots()
-    ax1.bar(despesas_categoria["Categoria"], despesas_categoria["Valor"], color='skyblue')
-    ax1.set_xlabel('Categoria')
-    ax1.set_ylabel('Valor Total (R$)')
+    ax1.barh(despesas_categoria["Categoria"], despesas_categoria["Valor"], color='skyblue')  # Usando barh para gráfico horizontal
+    ax1.set_xlabel('Valor Total (R$)')
+    ax1.set_ylabel('Categoria')
     ax1.set_title('Despesas por Categoria')
 
     # Adicionando rótulos de dados com o símbolo R$
     for i, v in enumerate(despesas_categoria["Valor"]):
-        ax1.text(i, v + 10, f"R${v:,.2f}", ha='center', va='bottom', fontweight='bold')
+        ax1.text(v + 10, i, f"R${v:,.2f}", va='center', fontweight='bold')  # Ajustando a posição do rótulo para gráfico horizontal
 
     st.pyplot(fig1)
+
 
     # Garantir que 'Data de Vencimento' esteja no formato datetime
     despesas["Data de Vencimento"] = pd.to_datetime(despesas["Data de Vencimento"], errors='coerce')
