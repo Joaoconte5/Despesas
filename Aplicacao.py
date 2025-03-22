@@ -36,7 +36,7 @@ def carregar_despesas():
     response = supabase.table("despesas").select("*").execute()
     if response.data:
         return pd.DataFrame(response.data)
-    return pd.DataFrame(columns=["Data", "Data de Vencimento", "Categoria", "Origem", "Valor", "Cartão", "Parcelas", "Observação"])
+    return pd.DataFrame(columns=["id", "Data", "Data de Vencimento", "Categoria", "Origem", "Valor", "Cartão", "Parcelas", "Observação"])
 
 def salvar_despesa(data, data_vencimento, categoria, origem, valor, cartao, parcelas, observacao):
     """Função para salvar uma nova despesa"""
@@ -55,25 +55,12 @@ def deletar_despesa(index):
     """Função para deletar uma despesa"""
     supabase.table("despesas").delete().eq("id", index).execute()
 
-def editar_despesa(index, data, data_vencimento, categoria, origem, valor, cartao, parcelas, observacao):
-    """Função para editar uma despesa existente"""
-    supabase.table("despesas").update({
-        "Data": str(data),
-        "Data de Vencimento": str(data_vencimento),
-        "Categoria": categoria,
-        "Origem": origem,
-        "Valor": valor,
-        "Cartão": cartao,
-        "Parcelas": parcelas,
-        "Observação": observacao
-    }).eq("id", index).execute()
-
 def pagina_lancamento():
-    """Página para lançamento ou edição de despesas"""
+    """Página para lançamento ou exclusão de despesas"""
     st.title("Lançamento de Despesas")
     
     despesas = carregar_despesas()  # Carregar todas as despesas
-    opcao_edicao = st.radio("Você quer editar uma despesa existente, adicionar uma nova despesa ou excluir uma despesa?", ("Adicionar Nova Despesa", "Editar Despesa Existente", "Excluir Despesa"))
+    opcao_edicao = st.radio("Você quer adicionar uma nova despesa ou excluir uma despesa?", ("Adicionar Nova Despesa", "Excluir Despesa"))
 
     # Exibição da tabela com todos os lançamentos
     st.subheader("Lançamentos Realizados")
@@ -83,40 +70,36 @@ def pagina_lancamento():
         st.warning("Não há despesas registradas.")
 
     if opcao_edicao == "Adicionar Nova Despesa":
-        data = st.date_input("Data da Despesa",format = "DD/MM/YYYY", value=date.today())
-        data_vencimento = st.date_input("Data de Vencimento",format = "DD/MM/YYYY", value=date.today())
-        categoria = st.selectbox("Categoria", ["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "viagem", "Casa Utensilio", "Casa concerto", "Diversos", "Carro", "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza","Vestuário", "Cursos e treinamentos"])
-        origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"])
-        valor = st.number_input("Valor", min_value=0.0, format="%.2f")
-        cartao = st.selectbox("Cartão", ["Crédito", "Débito"])
-        parcelas = st.text_input("Parcelas", value=str(despesa_editar.get("Parcelas", "")))
-        observacao = st.text_area("Observação")
+        st.subheader("Novo Lançamento com Dados de Despesa Existente")
+
+        # Opção de selecionar ID existente para pré-preencher os dados
+        id_existente = st.selectbox("Escolher uma despesa existente", ["Nenhum"] + list(despesas["id"].astype(str)))
+
+        # Se um ID for selecionado, preenche os campos com os dados existentes
+        if id_existente != "Nenhum":
+            despesa_existente = despesas[despesas["id"] == int(id_existente)].iloc[0]
+            data = st.date_input("Data da Despesa", format="DD/MM/YYYY", value=pd.to_datetime(despesa_existente["Data"]))
+            data_vencimento = st.date_input("Data de Vencimento", format="DD/MM/YYYY", value=pd.to_datetime(despesa_existente["Data de Vencimento"]))
+            categoria = st.selectbox("Categoria", ["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "Viagem", "Casa Utensílio", "Casa Concerto", "Diversos", "Carro", "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza", "Vestuário", "Cursos e Treinamentos"], index=["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "Viagem", "Casa Utensílio", "Casa Concerto", "Diversos", "Carro", "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza", "Vestuário", "Cursos e Treinamentos"].index(despesa_existente["Categoria"]))
+            origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"], index=["Suellen", "João", "Conjunto"].index(despesa_existente["Origem"]))
+            valor = st.number_input("Valor", min_value=0.0, format="%.2f", value=despesa_existente["Valor"])
+            cartao = st.selectbox("Cartão", ["Crédito", "Débito"], index=["Crédito", "Débito"].index(despesa_existente["Cartão"]))
+            parcelas = st.text_input("Parcelas", value=str(despesa_existente.get("Parcelas", "")))
+            observacao = st.text_area("Observação", value=despesa_existente["Observação"])
+        else:
+            data = st.date_input("Data da Despesa", format="DD/MM/YYYY", value=date.today())
+            data_vencimento = st.date_input("Data de Vencimento", format="DD/MM/YYYY", value=date.today())
+            categoria = st.selectbox("Categoria", ["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "Viagem", "Casa Utensílio", "Casa Concerto", "Diversos", "Carro", "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza", "Vestuário", "Cursos e Treinamentos"])
+            origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"])
+            valor = st.number_input("Valor", min_value=0.0, format="%.2f")
+            cartao = st.selectbox("Cartão", ["Crédito", "Débito"])
+            parcelas = st.text_input("Parcelas", value=str(""))
+            observacao = st.text_area("Observação")
         
         if st.button("Salvar Despesa"):
             salvar_despesa(data, data_vencimento, categoria, origem, valor, cartao, parcelas, observacao)
             st.success("Despesa salva com sucesso!")
             st.rerun()
-
-    elif opcao_edicao == "Editar Despesa Existente":
-        index_editar = st.number_input("Informe o ID da despesa a ser editada", min_value=0, step=1)
-        if st.button("Carregar Despesa"):
-            despesa_editar = supabase.table("despesas").select("*").eq("id", index_editar).execute()
-            if despesa_editar.data:
-                despesa_editar = despesa_editar.data[0]
-                data = st.date_input("Data da Despesa", format = "DD/MM/YYYY", value=pd.to_datetime(despesa_editar["Data"]))
-                data_vencimento = st.date_input("Data de Vencimento", format = "DD/MM/YYYY", value=pd.to_datetime(despesa_editar["Data de Vencimento"]))
-                categorias = ["Mercado", "Delivery Comida", "Delivery Bebida", "Restaurante/Bar", "Saúde", "Lazer", "Viagem", "Casa Utensílio", "Casa Concerto", "Diversos", "Carro", "Esportes", "Uber/99", "Entretenimento", "Nina", "Beleza", "Vestuário", "Cursos e Treinamentos"]
-                categoria = st.selectbox("Categoria", categorias, index=categorias.index(despesa_editar["Categoria"]))
-                origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"], index=["Suellen", "João", "Conjunto"].index(despesa_editar["Origem"]))
-                valor = st.number_input("Valor", min_value=0.0, format="%.2f", value=despesa_editar["Valor"])
-                cartao = st.selectbox("Cartão", ["Crédito", "Débito"], index=["Crédito", "Débito"].index(despesa_editar["Cartão"]))
-                parcelas = st.text_input("Parcelas", value=str(despesa_editar.get("Parcelas", "")))
-                observacao = st.text_area("Observação", value=despesa_editar["Observação"])
-                
-                if st.button("Salvar Despesa Editada"):
-                    editar_despesa(index_editar, data, data_vencimento, categoria, origem, valor, cartao, parcelas, observacao)
-                    st.success("Despesa editada com sucesso!")
-                    st.rerun()
 
     elif opcao_edicao == "Excluir Despesa":
         id_excluir = st.number_input("Informe o ID da despesa a ser excluída", min_value=0, step=1)
@@ -154,37 +137,74 @@ def pagina_graficos():
     
     if origem_filtro != "Todos":
         despesas = despesas[despesas["Origem"] == origem_filtro]
-    
-    # Gráfico: Valor total por categoria
-    categoria_total = despesas.groupby("Categoria")["Valor"].sum().reset_index()
-    fig1, ax1 = plt.subplots()
-    ax1.bar(categoria_total["Categoria"], categoria_total["Valor"], color='skyblue')
-    ax1.set_title("Valor Total por Categoria")
-    ax1.set_xlabel("Categoria")
-    ax1.set_ylabel("Valor Total (R$)")
-    
+
+    # gráfico de despesas por categoria
+    despesas_categoria = despesas.groupby("Categoria")["Valor"].sum().reset_index()
+
+    st.subheader("Despesas por Categoria")
+    fig, ax = plt.subplots()
+    ax.bar(despesas_categoria["Categoria"], despesas_categoria["Valor"], color='skyblue')
+    ax.set_xlabel('Categoria')
+    ax.set_ylabel('Valor Total (R$)')
+    ax.set_title('Despesas por Categoria')
+
     # Adicionando rótulos de dados com o símbolo R$
-    for i, v in enumerate(categoria_total["Valor"]):
-        ax1.text(i, v + 10, f"R${v:,.2f}", ha='center', va='bottom', fontweight='bold')
+    for i, v in enumerate(despesas_categoria["Valor"]):
+        ax.text(i, v + 10, f"R${v:,.2f}", ha='center', va='bottom', fontweight='bold')
+
+    st.pyplot(fig)
+
+def pagina_graficos():
+    """Página para exibir gráficos de despesas"""
+    st.title("Gráficos de Despesas")
+
+    # Filtro de origem
+    origem_filtro = st.selectbox("Filtrar por Origem", ["Todos", "Suellen", "João", "Conjunto"])
     
+    # Carregar as despesas
+    despesas = carregar_despesas()
+    
+    if origem_filtro != "Todos":
+        despesas = despesas[despesas["Origem"] == origem_filtro]
+
+    # Gráfico de despesas por categoria
+    despesas_categoria = despesas.groupby("Categoria")["Valor"].sum().reset_index()
+
+    st.subheader("Despesas por Categoria")
+    fig1, ax1 = plt.subplots()
+    ax1.bar(despesas_categoria["Categoria"], despesas_categoria["Valor"], color='skyblue')
+    ax1.set_xlabel('Categoria')
+    ax1.set_ylabel('Valor Total (R$)')
+    ax1.set_title('Despesas por Categoria')
+
+    # Adicionando rótulos de dados com o símbolo R$
+    for i, v in enumerate(despesas_categoria["Valor"]):
+        ax1.text(i, v + 10, f"R${v:,.2f}", ha='center', va='bottom', fontweight='bold')
+
     st.pyplot(fig1)
 
-    # Gráfico: Valor total por mês/ano
-    despesas["Data de Vencimento"] = pd.to_datetime(despesas["Data de Vencimento"])
-    despesas["Ano-Mês"] = despesas["Data de Vencimento"].dt.to_period("M")
-    mes_ano_total = despesas.groupby("Ano-Mês")["Valor"].sum().reset_index()
-    
+    # Garantir que 'Data de Vencimento' esteja no formato datetime
+    despesas["Data de Vencimento"] = pd.to_datetime(despesas["Data de Vencimento"], errors='coerce')
+
+    # Gráfico de despesas por mês de vencimento (apenas mês/ano)
+    despesas_vencimento = despesas.groupby(despesas["Data de Vencimento"].dt.to_period("M"))["Valor"].sum().reset_index()
+
+    st.subheader("Despesas por Mês de Vencimento")
     fig2, ax2 = plt.subplots()
-    ax2.plot(mes_ano_total["Ano-Mês"].astype(str), mes_ano_total["Valor"], marker='o', color='green')
-    ax2.set_title("Valor Total por Mês/Ano")
-    ax2.set_xlabel("Mês/Ano")
-    ax2.set_ylabel("Valor Total (R$)")
-    
+    ax2.bar(despesas_vencimento["Data de Vencimento"].astype(str), despesas_vencimento["Valor"], color='skyblue')
+    ax2.set_xlabel('Mês/Ano')
+    ax2.set_ylabel('Valor Total (R$)')
+    ax2.set_title('Despesas por Mês de Vencimento')
+
     # Adicionando rótulos de dados com o símbolo R$
-    for i, v in enumerate(mes_ano_total["Valor"]):
+    for i, v in enumerate(despesas_vencimento["Valor"]):
         ax2.text(i, v + 10, f"R${v:,.2f}", ha='center', va='bottom', fontweight='bold')
-    
+
     st.pyplot(fig2)
+
+
+
+
 
 
 if __name__ == "__main__":
