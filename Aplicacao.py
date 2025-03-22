@@ -89,7 +89,7 @@ def pagina_lancamento():
         origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"])
         valor = st.number_input("Valor", min_value=0.0, format="%.2f")
         cartao = st.selectbox("Cartão", ["Crédito", "Débito"])
-        parcelas = st.number_input("Parcelas", min_value=1, step=1, value=1)
+        parcelas = st.text_input("Parcelas", value=str(despesa_editar.get("Parcelas", "")))
         observacao = st.text_area("Observação")
         
         if st.button("Salvar Despesa"):
@@ -110,7 +110,7 @@ def pagina_lancamento():
                 origem = st.selectbox("Origem", ["Suellen", "João", "Conjunto"], index=["Suellen", "João", "Conjunto"].index(despesa_editar["Origem"]))
                 valor = st.number_input("Valor", min_value=0.0, format="%.2f", value=despesa_editar["Valor"])
                 cartao = st.selectbox("Cartão", ["Crédito", "Débito"], index=["Crédito", "Débito"].index(despesa_editar["Cartão"]))
-                parcelas = st.number_input("Parcelas", min_value=1, step=1, value=despesa_editar["Parcelas"])
+                parcelas = st.text_input("Parcelas", value=str(despesa_editar.get("Parcelas", "")))
                 observacao = st.text_area("Observação", value=despesa_editar["Observação"])
                 
                 if st.button("Salvar Despesa Editada"):
